@@ -1,0 +1,779 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+
+-- REMOTE EVENTS
+local RS = game:GetService("ReplicatedStorage")
+local Events = RS:WaitForChild("Events")
+
+-- GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TimeteADM"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- BLUR
+local blur = Instance.new("BlurEffect")
+blur.Size = 0
+blur.Parent = Lighting
+
+-- MAIN FRAME
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 550, 0, 550)
+mainFrame.Position = UDim2.new(0.5, -275, 0.5, -275)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Thickness = 1.5
+mainStroke.Color = Color3.fromRGB(50, 50, 70)
+mainStroke.Parent = mainFrame
+
+-- TOPBAR
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1, 0, 0, 50)
+topBar.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+topBar.BorderSizePixel = 0
+topBar.Parent = mainFrame
+
+local topCorner = Instance.new("UICorner")
+topCorner.CornerRadius = UDim.new(0, 12)
+topCorner.Parent = topBar
+
+-- ÍCONE
+local iconFrame = Instance.new("Frame")
+iconFrame.Size = UDim2.new(0, 32, 0, 32)
+iconFrame.Position = UDim2.new(0, 12, 0, 9)
+iconFrame.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+iconFrame.Parent = topBar
+local ifc = Instance.new("UICorner")
+ifc.CornerRadius = UDim.new(0, 8)
+ifc.Parent = iconFrame
+local iconLabel = Instance.new("TextLabel")
+iconLabel.Size = UDim2.new(1, 0, 1, 0)
+iconLabel.BackgroundTransparency = 1
+iconLabel.Text = "🛡"
+iconLabel.TextSize = 16
+iconLabel.Font = Enum.Font.FredokaOne
+iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+iconLabel.Parent = iconFrame
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(0, 200, 0, 20)
+titleLabel.Position = UDim2.new(0, 52, 0, 8)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "timete - ADM 1.0"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 14
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = topBar
+
+local subLabel = Instance.new("TextLabel")
+subLabel.Size = UDim2.new(0, 200, 0, 15)
+subLabel.Position = UDim2.new(0, 52, 0, 28)
+subLabel.BackgroundTransparency = 1
+subLabel.Text = "Construa um Copter"
+subLabel.TextColor3 = Color3.fromRGB(100, 100, 130)
+subLabel.TextSize = 11
+subLabel.Font = Enum.Font.SourceSans
+subLabel.TextXAlignment = Enum.TextXAlignment.Left
+subLabel.Parent = topBar
+
+-- MINIMIZAR
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 28, 0, 28)
+minBtn.Position = UDim2.new(1, -40, 0, 11)
+minBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+minBtn.Text = "−"
+minBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+minBtn.TextSize = 16
+minBtn.Font = Enum.Font.SourceSansBold
+minBtn.Parent = topBar
+local mc = Instance.new("UICorner")
+mc.CornerRadius = UDim.new(0, 6)
+mc.Parent = minBtn
+
+local minimized = false
+local bodyFrame
+
+minBtn.Activated:Connect(function()
+    minimized = not minimized
+    if minimized then
+        mainFrame.Size = UDim2.new(0, 550, 0, 50)
+        minBtn.Text = "+"
+    else
+        mainFrame.Size = UDim2.new(0, 550, 0, 550)
+        minBtn.Text = "−"
+    end
+end)
+
+-- SIDEBAR
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, 140, 1, -50)
+sidebar.Position = UDim2.new(0, 0, 0, 50)
+sidebar.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+sidebar.BorderSizePixel = 0
+sidebar.Parent = mainFrame
+
+local sideCorner = Instance.new("UICorner")
+sideCorner.CornerRadius = UDim.new(0, 12)
+sideCorner.Parent = sidebar
+
+local sideLayout = Instance.new("UIListLayout")
+sideLayout.Padding = UDim.new(0, 4)
+sideLayout.Parent = sidebar
+local sidePad = Instance.new("UIPadding")
+sidePad.PaddingTop = UDim.new(0, 8)
+sidePad.PaddingLeft = UDim.new(0, 6)
+sidePad.PaddingRight = UDim.new(0, 6)
+sidePad.Parent = sidebar
+
+-- CONTENT
+local contentScroll = Instance.new("ScrollingFrame")
+contentScroll.Size = UDim2.new(1, -148, 1, -58)
+contentScroll.Position = UDim2.new(0, 146, 0, 54)
+contentScroll.BackgroundTransparency = 1
+contentScroll.BorderSizePixel = 0
+contentScroll.ScrollBarThickness = 3
+contentScroll.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 80)
+contentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+contentScroll.Parent = mainFrame
+
+local contentLayout = Instance.new("UIListLayout")
+contentLayout.Padding = UDim.new(0, 6)
+contentLayout.Parent = contentScroll
+
+local contentPad = Instance.new("UIPadding")
+contentPad.PaddingTop = UDim.new(0, 6)
+contentPad.PaddingRight = UDim.new(0, 8)
+contentPad.PaddingBottom = UDim.new(0, 6)
+contentPad.Parent = contentScroll
+
+-- PÁGINAS
+local pages = {}
+local currentPage = nil
+
+local function clearContent()
+    for _, c in pairs(contentScroll:GetChildren()) do
+        if c:IsA("Frame") then c:Destroy() end
+    end
+end
+
+-- SIDEBAR BOTÃO
+local sideButtons = {}
+local function createSideBtn(text, ico)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 38)
+    btn.BackgroundColor3 = Color3.fromRGB(18, 18, 25)
+    btn.Text = ""
+    btn.Parent = sidebar
+    local bc = Instance.new("UICorner")
+    bc.CornerRadius = UDim.new(0, 8)
+    bc.Parent = btn
+
+    local icoLabel = Instance.new("TextLabel")
+    icoLabel.Size = UDim2.new(0, 24, 0, 24)
+    icoLabel.Position = UDim2.new(0, 8, 0.5, -12)
+    icoLabel.BackgroundTransparency = 1
+    icoLabel.Text = ico
+    icoLabel.TextSize = 14
+    icoLabel.Font = Enum.Font.FredokaOne
+    icoLabel.Parent = btn
+
+    local txtLabel = Instance.new("TextLabel")
+    txtLabel.Size = UDim2.new(1, -38, 1, 0)
+    txtLabel.Position = UDim2.new(0, 36, 0, 0)
+    txtLabel.BackgroundTransparency = 1
+    txtLabel.Text = text
+    txtLabel.TextColor3 = Color3.fromRGB(150, 150, 170)
+    txtLabel.TextSize = 12
+    txtLabel.Font = Enum.Font.SourceSans
+    txtLabel.TextXAlignment = Enum.TextXAlignment.Left
+    txtLabel.Parent = btn
+
+    local accent = Instance.new("Frame")
+    accent.Size = UDim2.new(0, 3, 0.7, 0)
+    accent.Position = UDim2.new(0, 0, 0.15, 0)
+    accent.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+    accent.BorderSizePixel = 0
+    accent.Visible = false
+    accent.Parent = btn
+    local ac = Instance.new("UICorner")
+    ac.CornerRadius = UDim.new(1, 0)
+    ac.Parent = accent
+
+    table.insert(sideButtons, {btn=btn, txt=txtLabel, accent=accent})
+    return btn, txtLabel, accent
+end
+
+-- HELPER FUNCTIONS
+local selectedPlayer = nil
+local frozenPlayers = {}
+
+local function getSectionLabel(parent, text, ico)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 32)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = ico .. "  " .. text
+    label.TextColor3 = Color3.fromRGB(0, 120, 255)
+    label.TextSize = 12
+    label.Font = Enum.Font.SourceSansBold
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    local line = Instance.new("Frame")
+    line.Size = UDim2.new(1, 0, 0, 1)
+    line.Position = UDim2.new(0, 0, 1, -1)
+    line.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    line.BorderSizePixel = 0
+    line.Parent = frame
+    return frame
+end
+
+local function getActionRow(parent, text, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 42)
+    frame.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
+    frame.BorderSizePixel = 0
+    frame.Parent = parent
+    local fc = Instance.new("UICorner")
+    fc.CornerRadius = UDim.new(0, 8)
+    fc.Parent = frame
+    local fs = Instance.new("UIStroke")
+    fs.Thickness = 1
+    fs.Color = Color3.fromRGB(30, 30, 45)
+    fs.Parent = frame
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -50, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(200, 200, 210)
+    label.TextSize = 13
+    label.Font = Enum.Font.SourceSans
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 30, 0, 30)
+    btn.Position = UDim2.new(1, -38, 0, 6)
+    btn.BackgroundColor3 = Color3.fromRGB(0, 80, 200)
+    btn.Text = "▶"
+    btn.TextSize = 11
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Parent = frame
+    local bc = Instance.new("UICorner")
+    bc.CornerRadius = UDim.new(0, 6)
+    bc.Parent = btn
+    btn.Activated:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(0, 180, 100)
+        task.spawn(callback)
+        task.wait(0.4)
+        btn.BackgroundColor3 = Color3.fromRGB(0, 80, 200)
+    end)
+    return frame
+end
+
+local function getToggleRow(parent, text, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 42)
+    frame.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
+    frame.BorderSizePixel = 0
+    frame.Parent = parent
+    local fc = Instance.new("UICorner")
+    fc.CornerRadius = UDim.new(0, 8)
+    fc.Parent = frame
+    local fs = Instance.new("UIStroke")
+    fs.Thickness = 1
+    fs.Color = Color3.fromRGB(30, 30, 45)
+    fs.Parent = frame
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -60, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(200, 200, 210)
+    label.TextSize = 13
+    label.Font = Enum.Font.SourceSans
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0, 44, 0, 24)
+    toggle.Position = UDim2.new(1, -52, 0, 9)
+    toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+    toggle.Text = ""
+    toggle.Parent = frame
+    local tc = Instance.new("UICorner")
+    tc.CornerRadius = UDim.new(1, 0)
+    tc.Parent = toggle
+    local dot = Instance.new("Frame")
+    dot.Size = UDim2.new(0, 18, 0, 18)
+    dot.Position = UDim2.new(0, 3, 0, 3)
+    dot.BackgroundColor3 = Color3.fromRGB(120, 120, 140)
+    dot.Parent = toggle
+    local dc = Instance.new("UICorner")
+    dc.CornerRadius = UDim.new(1, 0)
+    dc.Parent = dot
+    local state = false
+    toggle.Activated:Connect(function()
+        state = not state
+        toggle.BackgroundColor3 = state and Color3.fromRGB(0, 100, 255) or Color3.fromRGB(40, 40, 55)
+        dot.Position = state and UDim2.new(1, -21, 0, 3) or UDim2.new(0, 3, 0, 3)
+        dot.BackgroundColor3 = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(120, 120, 140)
+        callback(state)
+    end)
+    return frame
+end
+
+-- DROPDOWN JOGADORES
+local function createPlayerDropdown(parent)
+    getSectionLabel(parent, "Jogador Alvo", "👤")
+
+    local dropFrame = Instance.new("Frame")
+    dropFrame.Size = UDim2.new(1, 0, 0, 40)
+    dropFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
+    dropFrame.BorderSizePixel = 0
+    dropFrame.Parent = parent
+    local dfc = Instance.new("UICorner")
+    dfc.CornerRadius = UDim.new(0, 8)
+    dfc.Parent = dropFrame
+    local dfs = Instance.new("UIStroke")
+    dfs.Thickness = 1
+    dfs.Color = Color3.fromRGB(30, 30, 45)
+    dfs.Parent = dropFrame
+
+    local dropLabel = Instance.new("TextLabel")
+    dropLabel.Size = UDim2.new(1, -40, 1, 0)
+    dropLabel.Position = UDim2.new(0, 12, 0, 0)
+    dropLabel.BackgroundTransparency = 1
+    dropLabel.Text = "Selecione um jogador  --"
+    dropLabel.TextColor3 = Color3.fromRGB(120, 120, 140)
+    dropLabel.TextSize = 13
+    dropLabel.Font = Enum.Font.SourceSans
+    dropLabel.TextXAlignment = Enum.TextXAlignment.Left
+    dropLabel.Parent = dropFrame
+
+    local dropBtn = Instance.new("TextButton")
+    dropBtn.Size = UDim2.new(0, 30, 0, 30)
+    dropBtn.Position = UDim2.new(1, -36, 0, 5)
+    dropBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 200)
+    dropBtn.Text = "⌄"
+    dropBtn.TextSize = 14
+    dropBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    dropBtn.Font = Enum.Font.SourceSansBold
+    dropBtn.Parent = dropFrame
+    local dbc = Instance.new("UICorner")
+    dbc.CornerRadius = UDim.new(0, 6)
+    dbc.Parent = dropBtn
+
+    local playerListFrame = Instance.new("Frame")
+    playerListFrame.Size = UDim2.new(1, 0, 0, 0)
+    playerListFrame.BackgroundColor3 = Color3.fromRGB(22, 22, 32)
+    playerListFrame.BorderSizePixel = 0
+    playerListFrame.Visible = false
+    playerListFrame.Parent = parent
+    local plc = Instance.new("UICorner")
+    plc.CornerRadius = UDim.new(0, 8)
+    plc.Parent = playerListFrame
+    Instance.new("UIListLayout").Parent = playerListFrame
+
+    local function refreshList()
+        for _, c in pairs(playerListFrame:GetChildren()) do
+            if c:IsA("TextButton") then c:Destroy() end
+        end
+        local count = 0
+        for _, p in pairs(Players:GetPlayers()) do
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, 0, 0, 34)
+            btn.BackgroundTransparency = 1
+            btn.Text = "  " .. p.DisplayName .. " (" .. p.Name .. ")"
+            btn.TextColor3 = p == player and Color3.fromRGB(0, 120, 255) or Color3.fromRGB(200, 200, 210)
+            btn.TextSize = 12
+            btn.Font = Enum.Font.SourceSans
+            btn.TextXAlignment = Enum.TextXAlignment.Left
+            btn.Parent = playerListFrame
+            btn.Activated:Connect(function()
+                selectedPlayer = p
+                dropLabel.Text = p.DisplayName .. " (" .. p.Name .. ")"
+                dropLabel.TextColor3 = Color3.fromRGB(200, 200, 210)
+                playerListFrame.Visible = false
+                playerListFrame.Size = UDim2.new(1, 0, 0, 0)
+            end)
+            count = count + 1
+        end
+        playerListFrame.Size = UDim2.new(1, 0, 0, count * 34)
+    end
+
+    dropBtn.Activated:Connect(function()
+        refreshList()
+        playerListFrame.Visible = not playerListFrame.Visible
+    end)
+
+    return dropLabel
+end
+
+-- ============ PÁGINAS ============
+
+-- PÁGINA 1: AÇÕES
+local function buildAcoes()
+    clearContent()
+    local dropLabel = createPlayerDropdown(contentScroll)
+
+    getSectionLabel(contentScroll, "Ações", "⚡")
+
+    getActionRow(contentScroll, "Kill", function()
+        if selectedPlayer and selectedPlayer.Character then
+            local hum = selectedPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then hum.Health = 0 end
+        end
+    end)
+
+    getActionRow(contentScroll, "Kill All", function()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= player and p.Character then
+                local hum = p.Character:FindFirstChildOfClass("Humanoid")
+                if hum then hum.Health = 0 end
+            end
+        end
+    end)
+
+    getActionRow(contentScroll, "Kick", function()
+        if selectedPlayer then
+            selectedPlayer:Kick("Kickado pelo admin!")
+        end
+    end)
+
+    getActionRow(contentScroll, "Kick All", function()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= player then
+                p:Kick("Kickado pelo admin!")
+            end
+        end
+    end)
+
+    getActionRow(contentScroll, "Freeze", function()
+        if selectedPlayer and selectedPlayer.Character then
+            local root = selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if root then root.Anchored = true end
+        end
+    end)
+
+    getActionRow(contentScroll, "Freeze All", function()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= player and p.Character then
+                local root = p.Character:FindFirstChild("HumanoidRootPart")
+                if root then root.Anchored = true end
+            end
+        end
+    end)
+
+    getActionRow(contentScroll, "Unfreeze", function()
+        if selectedPlayer and selectedPlayer.Character then
+            local root = selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if root then root.Anchored = false end
+        end
+    end)
+
+    getActionRow(contentScroll, "Unfreeze All", function()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Character then
+                local root = p.Character:FindFirstChild("HumanoidRootPart")
+                if root then root.Anchored = false end
+            end
+        end
+    end)
+end
+
+-- PÁGINA 2: MOVIMENTAÇÃO
+local function buildMovimento()
+    clearContent()
+    createPlayerDropdown(contentScroll)
+    getSectionLabel(contentScroll, "Movimentação", "🎯")
+
+    getActionRow(contentScroll, "TP to Player", function()
+        if selectedPlayer and selectedPlayer.Character then
+            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            local tRoot = selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if root and tRoot then
+                root.CFrame = tRoot.CFrame + Vector3.new(3,0,0)
+            end
+        end
+    end)
+
+    getActionRow(contentScroll, "View Player", function()
+        if selectedPlayer and selectedPlayer.Character then
+            workspace.CurrentCamera.CameraSubject = selectedPlayer.Character
+        end
+    end)
+
+    getActionRow(contentScroll, "View Reset", function()
+        workspace.CurrentCamera.CameraSubject = player.Character
+    end)
+
+    getSectionLabel(contentScroll, "Movimento Próprio", "🏃")
+
+    getToggleRow(contentScroll, "Speed Boost", function(state)
+        local char = player.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = state and 80 or 16 end
+    end)
+
+    getToggleRow(contentScroll, "Noclip", function(state)
+        RunService.Stepped:Connect(function()
+            if state and player.Character then
+                for _, p in pairs(player.Character:GetDescendants()) do
+                    if p:IsA("BasePart") then p.CanCollide = false end
+                end
+            end
+        end)
+    end)
+
+    getToggleRow(contentScroll, "Inf Jump", function(state)
+        UserInputService.JumpRequest:Connect(function()
+            if state then
+                local char = player.Character
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end
+        end)
+    end)
+end
+
+-- PÁGINA 3: EVENTOS DO JOGO
+local function buildEventos()
+    clearContent()
+    getSectionLabel(contentScroll, "Eventos do Jogo", "🎮")
+
+    getActionRow(contentScroll, "💣 Nuke", function()
+        pcall(function() Events.Nuke:FireServer() end)
+    end)
+
+    getActionRow(contentScroll, "📷 Shake Camera", function()
+        pcall(function() Events.ShakeCamera:FireServer() end)
+    end)
+
+    getActionRow(contentScroll, "😈 Troll", function()
+        pcall(function() Events.TrollTry:FireServer() end)
+    end)
+
+    getActionRow(contentScroll, "🔧 Break Joints", function()
+        pcall(function()
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:IsA("BasePart") then
+                    Events.BreakJoints:FireServer(obj)
+                end
+            end
+        end)
+    end)
+
+    getActionRow(contentScroll, "🚀 Launch All", function()
+        pcall(function() Events.Launch:FireServer() end)
+    end)
+
+    getActionRow(contentScroll, "🗑️ Delete Peça", function()
+        local mouse = player:GetMouse()
+        local conn
+        conn = mouse.Button1Down:Connect(function()
+            if mouse.Target then
+                pcall(function() Events.Delete:FireServer(mouse.Target) end)
+            end
+            conn:Disconnect()
+        end)
+    end)
+
+    getActionRow(contentScroll, "💬 Message", function()
+        pcall(function() Events.Message:FireServer("timete ADM 1.0") end)
+    end)
+end
+
+-- PÁGINA 4: CLIMA
+local function buildClima()
+    clearContent()
+    getSectionLabel(contentScroll, "Clima", "🌤️")
+
+    getActionRow(contentScroll, "☀️ Sol", function()
+        Lighting.ClockTime = 14
+        Lighting.Brightness = 2
+        Lighting.FogEnd = 100000
+        Lighting.Ambient = Color3.fromRGB(128,128,128)
+        Lighting.OutdoorAmbient = Color3.fromRGB(128,128,128)
+    end)
+
+    getActionRow(contentScroll, "🌙 Noite", function()
+        Lighting.ClockTime = 0
+        Lighting.Brightness = 0.5
+        Lighting.Ambient = Color3.fromRGB(30,30,60)
+    end)
+
+    getActionRow(contentScroll, "🌅 Pôr do Sol", function()
+        Lighting.ClockTime = 18
+        Lighting.Brightness = 1.5
+        Lighting.Ambient = Color3.fromRGB(255,150,50)
+    end)
+
+    getActionRow(contentScroll, "🌫️ Neblina", function()
+        Lighting.FogEnd = 80
+        Lighting.FogStart = 0
+        Lighting.FogColor = Color3.fromRGB(200,200,200)
+    end)
+
+    getActionRow(contentScroll, "🌑 Eclipse", function()
+        Lighting.ClockTime = 12
+        Lighting.Brightness = 0
+        Lighting.Ambient = Color3.fromRGB(0,0,0)
+    end)
+
+    getActionRow(contentScroll, "🌈 Arco-Íris", function()
+        Lighting.ClockTime = 14
+        Lighting.Ambient = Color3.fromRGB(255,100,200)
+        Lighting.Brightness = 3
+    end)
+
+    getActionRow(contentScroll, "🔄 Normal", function()
+        Lighting.ClockTime = 14
+        Lighting.Brightness = 1
+        Lighting.FogEnd = 100000
+        Lighting.Ambient = Color3.fromRGB(70,70,70)
+        Lighting.OutdoorAmbient = Color3.fromRGB(128,128,128)
+    end)
+end
+
+-- PÁGINA 5: FERRAMENTAS
+local function buildFerramentas()
+    clearContent()
+    getSectionLabel(contentScroll, "Ferramentas", "🛠️")
+
+    getToggleRow(contentScroll, "Modo Delete (Clique)", function(state)
+        local mouse = player:GetMouse()
+        local conn
+        if state then
+            conn = mouse.Button1Down:Connect(function()
+                if mouse.Target then
+                    pcall(function() Events.Delete:FireServer(mouse.Target) end)
+                end
+            end)
+        else
+            if conn then conn:Disconnect() end
+        end
+    end)
+
+    getActionRow(contentScroll, "Purge Map", function()
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Locked == false then
+                pcall(function() Events.Delete:FireServer(obj) end)
+            end
+        end
+    end)
+
+    getActionRow(contentScroll, "Refresh Jogadores", function()
+        selectedPlayer = nil
+    end)
+
+    getToggleRow(contentScroll, "ESP Jogadores", function(state)
+        local highlights = {}
+        if state then
+            RunService.Heartbeat:Connect(function()
+                if not state then return end
+                for _, p in pairs(Players:GetPlayers()) do
+                    if p ~= player and p.Character then
+                        if not highlights[p.Name] then
+                            local h = Instance.new("Highlight")
+                            h.FillColor = Color3.fromRGB(255,0,0)
+                            h.OutlineColor = Color3.fromRGB(255,255,255)
+                            h.FillTransparency = 0.5
+                            h.Parent = p.Character
+                            highlights[p.Name] = h
+                        end
+                    end
+                end
+            end)
+        else
+            for _, h in pairs(highlights) do
+                if h then h:Destroy() end
+            end
+            highlights = {}
+        end
+    end)
+
+    getToggleRow(contentScroll, "God Mode", function(state)
+        RunService.Heartbeat:Connect(function()
+            if state then
+                local char = player.Character
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                if hum then hum.Health = hum.MaxHealth end
+            end
+        end)
+    end)
+end
+
+-- NAVEGAÇÃO SIDEBAR
+local pages = {
+    {name="Ações", icon="⚡", fn=buildAcoes},
+    {name="Movimento", icon="🎯", fn=buildMovimento},
+    {name="Eventos", icon="🎮", fn=buildEventos},
+    {name="Clima", icon="🌤️", fn=buildClima},
+    {name="Ferramentas", icon="🛠️", fn=buildFerramentas},
+}
+
+for i, page in ipairs(pages) do
+    local btn, txtLabel, accent = createSideBtn(page.name, page.icon)
+    btn.Activated:Connect(function()
+        for _, sb in pairs(sideButtons) do
+            sb.btn.BackgroundColor3 = Color3.fromRGB(18, 18, 25)
+            sb.txt.TextColor3 = Color3.fromRGB(150, 150, 170)
+            sb.accent.Visible = false
+        end
+        btn.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
+        txtLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        accent.Visible = true
+        page.fn()
+    end)
+end
+
+-- Canvas update
+contentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    contentScroll.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y + 10)
+end)
+
+-- Começa na página de Ações
+buildAcoes()
+sideButtons[1].btn.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
+sideButtons[1].txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+sideButtons[1].accent.Visible = true
+
+-- ARRASTAR
+local dragging, dragInput, dragStart, startPos
+topBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+topBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
